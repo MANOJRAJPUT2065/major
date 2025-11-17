@@ -103,13 +103,11 @@ const uniqueModels = (...models: Array<string | undefined>) =>
     )
   );
 
-  const fallbackModels = [
-    "gemini-2.5-flash-lite",
-    "gemini-1.5-flash",
-    "gemini-1.5-flash-lite",
-    "gemini-1.5-mobile",
-    "gemini-1.0-pro"
-  ];
+const fallbackModels = [
+  "gemini-2.5-flash-lite",
+  "gemini-1.5-flash",
+  "gemini-1.5-flash-lite"
+];
   
 const getModelCandidates = (requested?: string) =>
   uniqueModels(

@@ -6,23 +6,20 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import Tree from 'react-d3-tree';
 
 interface PythonParseTreeProps {
-    code: string;
-    language: 'python' | 'cpp';
+    pythonCode: string;
 }
 
-const PythonParseTree: React.FC<PythonParseTreeProps> = ({ code, language }) => {
+const PythonParseTree: React.FC<PythonParseTreeProps> = ({ pythonCode }) => {
     const [loading, setLoading] = useState(false);
     const [parseTree, setParseTree] = useState<any>(null);
     const [open, setOpen] = useState(false);
 
     const generateParseTree = async () => {
         setLoading(true);
-        const languageLabel = language === 'cpp' ? 'C++' : 'Python';
-        const inputPrompt = `Ensure that the response is always in strict JSON format without unnecessary text or formatting issues. This is top priority.
-Generate a parse tree for the following ${languageLabel} code and return it in JSON format. If the code is difficult, understand the context and return a simpler parse tree for the program in the JSON format.
+        const inputPrompt = `Ensure that the response is always in strict JSON format without unnecessary text or formatting issues. This is top priority. Generate a parse tree for the following Python code and return it in JSON format. If the code is difficult make sure to understand the context and return a simpler parse tree for the program in the JSON format:
 
-${languageLabel} Code:
-${code}
+Python Code:
+${pythonCode}
 
 Return the output strictly in the following JSON format:
 {
@@ -40,8 +37,7 @@ Return the output strictly in the following JSON format:
             if (!rawResponse) {
                 throw new Error('No response from API');
             }
-            const cleanResponse = rawResponse.replace(/```json/gi, '').replace(/```/g, '');
-            console.log(result);
+            const cleanResponse = rawResponse.replace('```json', '').replace('```', '');
             const parsedResponse = JSON.parse(cleanResponse);
             setParseTree(parsedResponse);
         } catch (error: any) {
@@ -87,7 +83,7 @@ Return the output strictly in the following JSON format:
         <div>
             <div className="flex flex-col p-10 border m-5 rounded-lg">
                 <h1 className="text-xl font-bold mb-2">Parse Tree Generator</h1>
-                    <p>A parse tree visually represents the syntactic structure of a given {language === 'cpp' ? 'C++' : 'Python'} code snippet, illustrating how individual tokens are grouped and organized according to predefined grammar rules, helping in understanding the hierarchical relationships between different elements of the code.</p>
+                    <p>A parse tree visually represents the syntactic structure of a given Python code snippet, illustrating how individual tokens are grouped and organized according to predefined grammar rules, helping in understanding the hierarchical relationships between different elements of the code.</p>
                 <Button onClick={() => setOpen(true)} className="mt-3">
                     Open Parse Tree Generator
                 </Button>
