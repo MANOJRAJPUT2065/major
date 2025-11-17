@@ -1,11 +1,12 @@
 'use client'
 import React, { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
 
 interface LexicalAnalyzerProps {
   code: string;
+  language: 'java' | 'cpp';
 }
 
 interface Token {
@@ -13,7 +14,7 @@ interface Token {
   value: string;
 }
 
-const LexicalAnalyzer: React.FC<LexicalAnalyzerProps> = ({ code }) => {
+const LexicalAnalyzer: React.FC<LexicalAnalyzerProps> = ({ code, language }) => {
   const [tokens, setTokens] = useState<Token[]>([]);
   const [isOpen, setIsOpen] = useState(false);
 
@@ -57,7 +58,28 @@ const LexicalAnalyzer: React.FC<LexicalAnalyzerProps> = ({ code }) => {
     "Field", "Method", "Constructor", "Class", "Modifier"
   ];
 
+  const cppKeywords = [
+    "alignas", "alignof", "and", "and_eq", "asm", "atomic_cancel", "atomic_commit", "atomic_noexcept",
+    "auto", "bitand", "bitor", "bool", "break", "case", "catch", "char", "char8_t", "char16_t",
+    "char32_t", "class", "compl", "concept", "const", "consteval", "constexpr", "constinit", "const_cast",
+    "continue", "co_await", "co_return", "co_yield", "decltype", "default", "delete", "do", "double",
+    "dynamic_cast", "else", "enum", "explicit", "export", "extern", "false", "float", "for", "friend",
+    "goto", "if", "inline", "int", "long", "mutable", "namespace", "new", "noexcept", "not", "not_eq",
+    "nullptr", "operator", "or", "or_eq", "private", "protected", "public", "reflexpr", "register",
+    "reinterpret_cast", "requires", "return", "short", "signed", "sizeof", "static", "static_assert",
+    "static_cast", "struct", "switch", "template", "this", "thread_local", "throw", "true", "try",
+    "typedef", "typeid", "typename", "union", "unsigned", "using", "virtual", "void", "volatile",
+    "wchar_t", "while", "xor", "xor_eq",
+
+    // Common headers and std symbols
+    "std", "cout", "cin", "endl", "vector", "string", "map", "unordered_map", "set", "unordered_set",
+    "queue", "stack", "deque", "list", "array", "tuple", "optional", "variant", "filesystem",
+    "chrono", "thread", "mutex", "lock_guard", "unique_lock", "shared_ptr", "unique_ptr", "make_shared",
+    "make_unique", "move", "forward", "begin", "end", "rbegin", "rend"
+  ];
+
   useEffect(() => {
+    const keywords = language === 'cpp' ? cppKeywords : javaKeywords;
     const analyzeCode = () => {
       const codeTokens: Token[] = [];
       const regex = /\b(\w+)\b|(["'](?:\\.|[^"'])*["'])|([\+\-\*\/\=\!\<\>\&\|\^\%\~]+)|([\(\)\{\}\[\];,\.])/g;
@@ -66,7 +88,7 @@ const LexicalAnalyzer: React.FC<LexicalAnalyzerProps> = ({ code }) => {
       while ((match = regex.exec(code)) !== null) {
         const [_, word, string, operator, delimiter] = match;
 
-        if (word && javaKeywords.includes(word)) {
+        if (word && keywords.includes(word)) {
           codeTokens.push({ type: "Keyword", value: word });
         } else if (word && !isNaN(Number(word))) {
           codeTokens.push({ type: "Number", value: word });
@@ -85,7 +107,7 @@ const LexicalAnalyzer: React.FC<LexicalAnalyzerProps> = ({ code }) => {
     };
 
     analyzeCode();
-  }, [code]);
+  }, [code, language]);
 
 
   const groupedTokens = tokens.reduce((acc, token) => {

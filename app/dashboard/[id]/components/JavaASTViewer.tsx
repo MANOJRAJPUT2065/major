@@ -6,8 +6,9 @@ import * as antlr4 from "antlr4ts";
 import { CommonTokenStream } from "antlr4ts";
 import { Tree } from "react-d3-tree";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog";
-import JavaASTToAssembly from "./ICG";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { chatSession } from "@/utils/GeminiAIModel";
+import { Loader2 } from "lucide-react";
 
 interface ASTNode {
   type: string;
@@ -101,25 +102,63 @@ export function parseJavaToAST(code: string): string {
 }
 
 interface JavaASTViewerProps {
-  javaCode: string;
+  code: string;
+  language: 'java' | 'cpp';
 }
 
 
 
 
 
-const JavaASTViewer: React.FC<JavaASTViewerProps> = ({ javaCode }) => {
+const JavaASTViewer: React.FC<JavaASTViewerProps> = ({ code, language }) => {
   const [astResult, setAstResult] = useState<string>("");
   const [treeData, setTreeData] = useState<any>(null);
   const [isOpen, setIsOpen] = useState(false);
-  const [sast, setSast] = useState<string>("")
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const handleParseClick = () => {
-    console.log(astResult)
-    const result = parseJavaToAST(javaCode);
-    setAstResult(result);
-    setTreeData(parseAST(result));
-    setIsOpen(true);
+  const handleParseClick = async () => {
+    setErrorMessage(null);
+    setIsLoading(true);
+    try {
+      if (language === 'java') {
+        const result = parseJavaToAST(code);
+        setAstResult(result);
+        setTreeData(parseAST(result));
+      } else {
+        const inputPrompt = `You are a compiler assistant. Generate a clean, hierarchical abstract syntax tree for the following C++ code. 
+The response must be strict JSON without code fences and follow this schema:
+{
+  "name": "Root",
+  "children": [
+    { "name": "Child node", "children": [...] }
+  ]
+}
+
+Include meaningful node names (e.g., "FunctionDeclaration", "ForLoop", "IfStatement") and keep the tree concise but representative. 
+Code:
+${code}`;
+
+        const response = await chatSession.sendMessage(inputPrompt, undefined);
+        const raw = response?.response?.text?.() ?? "";
+        if (!raw) {
+          throw new Error("Empty response from model");
+        }
+        const clean = raw.replace(/```json/gi, '').replace(/```/g, '').trim();
+        const parsed = JSON.parse(clean);
+        setTreeData(parsed);
+        setAstResult("C++ AST generated via Gemini");
+      }
+      setIsOpen(true);
+    } catch (error: any) {
+      console.error("Error generating AST:", error);
+      const message = error?.message ?? String(error);
+      setErrorMessage(message);
+      setTreeData(null);
+      setIsOpen(true);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -130,7 +169,15 @@ const JavaASTViewer: React.FC<JavaASTViewerProps> = ({ javaCode }) => {
         <div className="text-xl font-bold my-2">Symentic Analysis</div>
         Semantic analysis  goes a step further. It checks whether the code makes sense logically. For example, it ensures that variables are declared before being used, functions are called with the correct number of arguments, and types are compatible. While syntax checks the "form" of the code, semantic analysis checks the "meaning" behind it to make sure everything works together.
           
-        <Button className="mt-3" onClick={handleParseClick}>Parse Code</Button>
+        <Button className="mt-3" onClick={handleParseClick} disabled={isLoading}>
+          {isLoading ? (
+            <span className="flex items-center gap-2">
+              <Loader2 className="h-4 w-4 animate-spin" /> Generating...
+            </span>
+          ) : (
+            "Parse Code"
+          )}
+        </Button>
       </div>
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogContent className="max-w-screen-2xl w-[90vw] h-[90vh] p-0 flex flex-col">
@@ -138,7 +185,15 @@ const JavaASTViewer: React.FC<JavaASTViewerProps> = ({ javaCode }) => {
             <DialogTitle>Abstract Syntax Tree</DialogTitle>
 
           </DialogHeader>
-          {treeData && (
+          {errorMessage && (
+            <div className="w-full h-full p-6">
+              <p className="text-red-500 font-semibold">Failed to generate AST</p>
+              <pre className="mt-3 whitespace-pre-wrap break-words text-sm bg-red-50 p-4 rounded border border-red-200">
+                {errorMessage}
+              </pre>
+            </div>
+          )}
+          {treeData && !errorMessage && (
             <div className="w-full h-full p-4">
               <Tree
                 data={treeData}

@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata } from "next/dist/lib/metadata/types/metadata-interface";
 import {
   ClerkProvider,
   SignInButton,
@@ -8,6 +8,7 @@ import {
 } from '@clerk/nextjs'
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import ChunkErrorHandler from "@/components/ChunkErrorHandler";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -35,6 +36,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <ChunkErrorHandler />
         {children}
       </body>
     </html>

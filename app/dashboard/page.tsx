@@ -17,15 +17,15 @@ const page = () => {
   const Router = useRouter()
 
   const handlePush = () => {
-    setUuid(uuidv4())
-    Router.push(`/dashboard/${uuid}`) //compiler
-
+    const newId = uuidv4()
+    setUuid(newId)
+    Router.push(`/dashboard/${newId}`) //compiler
   }
 
   const handlePush2 = () => {
-    setUuid(uuidv4())
-    Router.push(`/dashboard/interpreter/${uuid}`)
-
+    const newId = uuidv4()
+    setUuid(newId)
+    Router.push(`/dashboard/interpreter/${newId}`)
   }
 
   const ondeletea = async (id: string) => {

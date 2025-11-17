@@ -9,9 +9,16 @@ import {
 
 const LANGUAGE_VERSIONS = {
     java: "15.0.2",
+    cpp: "10.2.0"
 };
 
 const languages = Object.entries(LANGUAGE_VERSIONS);
+
+const formatLanguageName = (language: string) => {
+    if (language === "cpp") return "C++";
+    if (language === "java") return "Java";
+    return language;
+};
 
 const LanguageSelector = ({ language, onSelect }: any) => {
     return (
@@ -26,7 +33,7 @@ const LanguageSelector = ({ language, onSelect }: any) => {
                 <SelectContent>
                     {languages.map(([language, version]) => (
                         <SelectItem key={language} value={language}>
-                            {language} <span className="text-sm text-gray-600">({version})</span>
+                            {formatLanguageName(language)} <span className="text-sm text-gray-600">({version})</span>
                         </SelectItem>
                     ))}
                 </SelectContent>

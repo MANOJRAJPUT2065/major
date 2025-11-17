@@ -9,17 +9,27 @@ import { ToastContainer, toast } from 'react-toastify';
 
 export const LANGUAGE_VERSIONS: { [key: string]: string } = {
     python: "3.10.0",
+    cpp: "10.2.0",
 };
 
 const CODE_SNIPPETS: { [key: string]: string } = {
     python: `\ndef greet(name):\n\tprint("Hello, " + name + "!")\n\ngreet("Alex")\n`,
+    cpp: `#include <iostream>\n\nint main() {\n    std::cout << "Hello, World!" << std::endl;\n    return 0;\n}\n`,
 };
 
 
-const CodeEditor = ({ setC, ide }: any) => {
+interface CodeEditorProps {
+    setC: (code: string) => void;
+    ide: string | null;
+    onLanguageChange?: (language: string) => void;
+    initialLanguage?: string;
+}
+
+const CodeEditor: React.FC<CodeEditorProps> = ({ setC, ide, onLanguageChange, initialLanguage = 'python' }) => {
     const editorRef = useRef<any>(null);
-    const [language, setLanguage] = useState('python');
-    const [value, setValue] = useState(CODE_SNIPPETS[language]);
+    const initial = (initialLanguage in CODE_SNIPPETS ? initialLanguage : 'python') as 'python' | 'cpp';
+    const [language, setLanguage] = useState<'python' | 'cpp'>(initial);
+    const [value, setValue] = useState(CODE_SNIPPETS[initial]);
     const [output, setOutput] = useState('');
     const [loading, setLoading] = useState(false)
     const [loadingb, setLoadingb] = useState(false)
@@ -102,6 +112,7 @@ const CodeEditor = ({ setC, ide }: any) => {
 
             if (datas.res && Array.isArray(datas.res) && datas.res.length > 0) {
                 setValue(datas.res[0].code);
+                setC(datas.res[0].code);
             } else {
                 console.log("No code found");
             }
@@ -117,11 +128,24 @@ const CodeEditor = ({ setC, ide }: any) => {
         editor.focus();
     };
 
-    const onSelect = (language: 'python') => {
-        setLanguage(language);
-        setC(CODE_SNIPPETS[language]);
-        setValue(CODE_SNIPPETS[language]);
+    useEffect(() => {
+        if (initialLanguage && initialLanguage !== language && initialLanguage in CODE_SNIPPETS) {
+            const normalized = initialLanguage as 'python' | 'cpp';
+            const snippet = CODE_SNIPPETS[normalized];
+            setLanguage(normalized);
+            setValue(snippet);
+            setC(snippet);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [initialLanguage]);
 
+    const onSelect = (nextLanguage: 'python' | 'cpp') => {
+        const fallbackLanguage = CODE_SNIPPETS[nextLanguage] ? nextLanguage : 'python';
+        setLanguage(fallbackLanguage);
+        const snippet = CODE_SNIPPETS[fallbackLanguage];
+        setValue(snippet);
+        setC(snippet);
+        onLanguageChange?.(fallbackLanguage);
     };
 
     const runCode = async () => {

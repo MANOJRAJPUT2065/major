@@ -13,6 +13,7 @@ import JavaToThreePass from './components/CO'
 const page = ({ params }: { params: Promise<{ id: string }> }) => {
     const [id, setId] = useState<string | null>(null)
     const [c, setC] = useState(`\npublic class HelloWorld {\n\tpublic static void main(String[] args) {\n\t\tSystem.out.println("Hello World");\n\t}\n}\n`)
+    const [language, setLanguage] = useState<'java' | 'cpp'>('java')
 
     useEffect(() => {
         params.then(({ id }) => setId(id))
@@ -23,14 +24,14 @@ const page = ({ params }: { params: Promise<{ id: string }> }) => {
             <div className='grid grid-cols-2'>
                
                 <div className=' min-h-screen flex flex-col '>
-                    <CodeEditor setC={setC} ide={id}/>
+                    <CodeEditor setC={setC} ide={id} onLanguageChange={(lang) => setLanguage(lang as 'java' | 'cpp')} initialLanguage={language}/>
 
                 </div>
                 <div className='min-h-screen'>
-                    <LexicalAnalyzer code={c} />
-                    <JavaASTViewer javaCode={c} />
-                    <JavaToAssembly javaCode={c}/>
-                    <JavaToThreePass javaCode={c}/>
+                    <LexicalAnalyzer code={c} language={language} />
+                    <JavaASTViewer code={c} language={language} />
+                    <JavaToAssembly code={c} language={language}/>
+                    <JavaToThreePass code={c} language={language}/>
                 </div>
                 
 
