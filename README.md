@@ -316,13 +316,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **ANTLR4** - Powerful parser generator
 - **Vercel** - Deployment platform
 
-## 📧 Contact
 
-**Aveek Chakraborty**
-- GitHub: [@Aveek-Chakraborty](https://github.com/Aveek-Chakraborty)
-- Repository: [compiler-interpreter-visualiser](https://github.com/Aveek-Chakraborty/compiler-interpreter-visualiser)
-
----
 
 <div align="center">
 
