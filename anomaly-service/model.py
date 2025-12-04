@@ -197,3 +197,31 @@ def load_model() -> AnomalyDetectionModel:
         model.scaler = joblib.load(model.scaler_path)
         model.is_trained = True
     return model
+
+
+def train_with_dataset(csv_path: str) -> bool:
+    """Train the model using a CSV dataset."""
+    from datasets import DatasetLoader
+    from train_lstm_model import train_lstm_model
+    
+    try:
+        # Load and prepare data
+        df = DatasetLoader.load_csv(csv_path)
+        sequences, min_val, max_val = DatasetLoader.prepare_data(df, seq_length=30)
+        
+        if len(sequences) == 0:
+            print("Error: No sequences generated from dataset")
+            return False
+        
+        # Train LSTM model
+        lstm_model = train_lstm_model(sequences, epochs=50, batch_size=32)
+        
+        # Save model
+        model_instance = get_model()
+        model_instance.model = lstm_model
+        model_instance.is_trained = True
+        
+        return True
+    except Exception as e:
+        print(f"Training error: {e}")
+        return False
