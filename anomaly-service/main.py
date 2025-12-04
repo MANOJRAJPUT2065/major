@@ -194,6 +194,28 @@ async def train(request: TrainRequest):
         raise HTTPException(status_code=400, detail=str(e))
 
 
+@app.post("/train-dataset")
+async def train_dataset(dataset_path: str = "data/GE.csv"):
+    """
+    Train the model using provided dataset.
+    
+    Args:
+        dataset_path: Path to CSV dataset
+    
+    Returns:
+        Dict with training status
+    """
+    try:
+        success = train_with_dataset(dataset_path)
+        if success:
+            return {"status": "success", "message": "Model trained successfully"}
+        else:
+            return {"status": "failed", "message": "Training failed"}
+    except Exception as e:
+        logger.error(f"Training with dataset error: {str(e)}")
+        raise HTTPException(status_code=400, detail=str(e))
+
+
 @app.get("/")
 async def root():
     """Root endpoint with API information."""
